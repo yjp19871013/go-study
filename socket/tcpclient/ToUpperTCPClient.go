@@ -18,8 +18,9 @@ func checkError(err error) {
 }
 
 func main() {
-	serverAddr := config.SERVER_IP + ":" + strconv.Itoa(config.SERVER_PORT)
-	conn, err := net.Dial("udp", serverAddr)
+	address := config.SERVER_IP + ":" + strconv.Itoa(config.SERVER_PORT)
+
+	conn, err := net.Dial("tcp", address)
 	checkError(err)
 
 	defer conn.Close()
@@ -29,9 +30,7 @@ func main() {
 		line := input.Text()
 
 		lineLen := len(line)
-
-		n := 0
-		for written := 0; written < lineLen; written += n {
+		for written := 0; written < lineLen; {
 			var toWrite string
 			if lineLen-written > config.SERVER_RECV_LEN {
 				toWrite = line[written : written+config.SERVER_RECV_LEN]
@@ -39,7 +38,7 @@ func main() {
 				toWrite = line[written:]
 			}
 
-			n, err = conn.Write([]byte(toWrite))
+			n, err := conn.Write([]byte(toWrite))
 			checkError(err)
 
 			fmt.Println("Write:", toWrite)
@@ -49,6 +48,9 @@ func main() {
 			checkError(err)
 
 			fmt.Println("Response:", string(msg))
+
+			written += n
 		}
 	}
+
 }

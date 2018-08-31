@@ -37,8 +37,14 @@ func main() {
 
 		strData := string(data)
 		fmt.Println("Received:", strData)
+
 		upper := strings.ToUpper(strData)
-		conn.WriteToUDP([]byte(upper), rAddr)
+		_, err = conn.WriteToUDP([]byte(upper), rAddr)
+		if err != nil {
+			fmt.Println(err)
+			continue
+		}
+
 		fmt.Println("Send:", upper)
 	}
 }
