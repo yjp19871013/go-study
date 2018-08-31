@@ -30,7 +30,8 @@ func main() {
 		line := input.Text()
 
 		lineLen := len(line)
-		for written := 0; written < lineLen; {
+		n := 0
+		for written := 0; written < lineLen; written += n {
 			var toWrite string
 			if lineLen-written > config.SERVER_RECV_LEN {
 				toWrite = line[written : written+config.SERVER_RECV_LEN]
@@ -38,7 +39,7 @@ func main() {
 				toWrite = line[written:]
 			}
 
-			n, err := conn.Write([]byte(toWrite))
+			n, err = conn.Write([]byte(toWrite))
 			checkError(err)
 
 			fmt.Println("Write:", toWrite)
@@ -48,8 +49,6 @@ func main() {
 			checkError(err)
 
 			fmt.Println("Response:", string(msg))
-
-			written += n
 		}
 	}
 
