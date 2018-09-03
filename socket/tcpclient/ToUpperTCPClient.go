@@ -29,22 +29,28 @@ func main() {
 	for input.Scan() {
 		line := input.Text()
 
-		_, err = conn.Write([]byte(line))
-		checkError(err)
+		lineLen := len(line)
 
-		fmt.Println("Write:", line)
+		n := 0
+		for written := 0; written < lineLen; written += n {
+			var toWrite string
+			if lineLen-written > config.SERVER_RECV_LEN {
+				toWrite = line[written : written+config.SERVER_RECV_LEN]
+			} else {
+				toWrite = line[written:]
+			}
 
-		recvLen := len(line)
-		msg := make([]byte, recvLen)
-		received := 0
-		for recvLen >= 0 {
-			start := received
-			received, err = conn.Read(msg[start:])
+			n, err = conn.Write([]byte(toWrite))
 			checkError(err)
-			recvLen -= received
-		}
 
-		fmt.Println("Response:", string(msg))
+			fmt.Println("Write:", toWrite)
+
+			msg := make([]byte, config.SERVER_RECV_LEN)
+			n, err = conn.Read(msg)
+			checkError(err)
+
+			fmt.Println("Response:", string(msg))
+		}
 	}
 
 }
