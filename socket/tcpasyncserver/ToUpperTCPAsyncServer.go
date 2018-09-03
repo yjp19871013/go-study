@@ -18,6 +18,8 @@ func main() {
 		os.Exit(1)
 	}
 
+	defer listener.Close()
+
 	for {
 		conn, err := listener.Accept()
 		if err != nil {
