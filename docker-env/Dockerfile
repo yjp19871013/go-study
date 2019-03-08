@@ -1,0 +1,7 @@
+FROM alpine:latest
+ENV MY_PROGRAM_NAME ""
+ENV MY_PROGRAM_VERSION ""
+WORKDIR /
+COPY main /
+RUN ls /
+ENTRYPOINT [ "/main" ]
