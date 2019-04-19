@@ -142,7 +142,6 @@ func (q *MsgQueue) SendMsg(msg string, data interface{}) {
 		fmt.Println("SendMsg error:", err)
 		return
 	}
-	fmt.Println("2222222", msg)
 	q.msgChan <- message
 }
 
