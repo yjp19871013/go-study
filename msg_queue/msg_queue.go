@@ -40,6 +40,8 @@ func formMessage(msg string, data interface{}) (*Message, error) {
 type MsgQueue struct {
 	handler MsgQueueHandler
 
+	isStart bool
+
 	observers      []*MsgQueue
 	observersMutex sync.Mutex
 
@@ -84,10 +86,16 @@ func DestroyMsgQueue(q *MsgQueue) {
 }
 
 func (q *MsgQueue) Start() {
+	q.isStart = true
+
 	go q.run()
 }
 
 func (q *MsgQueue) Stop() {
+	if !q.isStart {
+		return
+	}
+
 	q.stopChan <- true
 	<-q.stopChan
 }
@@ -131,9 +139,10 @@ func (q *MsgQueue) NotifyObservers(msg string, data interface{}) {
 func (q *MsgQueue) SendMsg(msg string, data interface{}) {
 	message, err := formMessage(msg, data)
 	if err != nil {
+		fmt.Println("SendMsg error:", err)
 		return
 	}
-
+	fmt.Println("2222222", msg)
 	q.msgChan <- message
 }
 
