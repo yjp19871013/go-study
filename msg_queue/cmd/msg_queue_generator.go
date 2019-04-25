@@ -34,7 +34,7 @@ func Destroy{{ .ClassName }}({{ .ObjectName }} *{{ .ClassName }}) {
 
 // Start 开始运行
 func ({{ .ObjectName }} *{{ .ClassName }}) Start() {
-	{{ .ObjectName }}.msgQueue.Start()
+	{{ .ObjectName }}.msgQueue.Start({{ .UseDefaultRun }})
 }
 
 // Stop 停止运行
@@ -64,26 +64,30 @@ func ({{ .ObjectName }} *{{ .ClassName }}) OnDefaultRun(q *msg_queue.MsgQueue) {
 `
 
 var (
-	className    string
-	objectName   string
-	filePathname string
+	className     string
+	objectName    string
+	filePathname  string
+	useDefaultRun bool
 )
 
 func init() {
 	flag.StringVar(&className, "c", "MyMsgQueue", "生成的类名")
-	flag.StringVar(&objectName, "o", "q", "使用的方法对象名")
+	flag.StringVar(&objectName, "o", "mq", "使用的方法对象名")
 	flag.StringVar(&filePathname, "f", "my_msg_queue.go", "保存的文件名")
+	flag.BoolVar(&useDefaultRun, "d", false, "是否使用default run")
 }
 
 func main() {
 	flag.Parse()
 
 	param := struct {
-		ClassName  string
-		ObjectName string
+		ClassName     string
+		ObjectName    string
+		UseDefaultRun bool
 	}{
-		ClassName:  className,
-		ObjectName: objectName,
+		ClassName:     className,
+		ObjectName:    objectName,
+		UseDefaultRun: useDefaultRun,
 	}
 
 	t := template.Must(template.New("msg_queue").Parse(msgQueueTemplate))
