@@ -85,10 +85,14 @@ func DestroyMsgQueue(q *MsgQueue) {
 	q = nil
 }
 
-func (q *MsgQueue) Start() {
+func (q *MsgQueue) Start(useDefaultRun bool) {
 	q.isStart = true
 
-	go q.run()
+	if useDefaultRun {
+		go q.runWithDefault()
+	} else {
+		go q.runWithoutDefault()
+	}
 }
 
 func (q *MsgQueue) Stop() {
@@ -98,6 +102,8 @@ func (q *MsgQueue) Stop() {
 
 	q.stopChan <- true
 	<-q.stopChan
+
+	q.isStart = false
 }
 
 func (q *MsgQueue) AddObserver(observer *MsgQueue) {
@@ -146,7 +152,7 @@ func (q *MsgQueue) SendMsg(msg string, data interface{}) {
 	q.msgChan <- message
 }
 
-func (q *MsgQueue) run() {
+func (q *MsgQueue) runWithDefault() {
 	q.handler.OnStart(q)
 
 	for {
@@ -162,6 +168,24 @@ func (q *MsgQueue) run() {
 			q.handler.OnMsgRecv(q, msg)
 		default:
 			q.handler.OnDefaultRun(q)
+		}
+	}
+}
+
+func (q *MsgQueue) runWithoutDefault() {
+	q.handler.OnStart(q)
+
+	for {
+		select {
+		case stop := <-q.stopChan:
+			if stop {
+				q.handler.OnStop(q)
+				q.stopChan <- true
+				return
+			}
+			q.stopChan <- true
+		case msg := <-q.msgChan:
+			q.handler.OnMsgRecv(q, msg)
 		}
 	}
 }
