@@ -7,14 +7,24 @@ import (
 )
 
 type MsgQueueHandler interface {
+	// 在消息线程进入消息循环前执行
 	OnStart(q *MsgQueue)
+
+	// 在消息线程退出消息循环前执行
 	OnStop(q *MsgQueue)
+
+	// 消息响应函数
 	OnMsgRecv(q *MsgQueue, msg *Message)
+
+	// 消息循环中的default调用
 	OnDefaultRun(q *MsgQueue)
 }
 
 type Message struct {
-	Msg      string
+	// 消息名称
+	Msg string
+
+	// 消息数据
 	JsonData []byte
 }
 
@@ -49,10 +59,12 @@ type MsgQueue struct {
 	stopChan chan bool
 }
 
+// 初始化无buffer的消息队列
 func InitMsgQueue(handler MsgQueueHandler) *MsgQueue {
 	return InitMsgQueueWithMsgBufferSize(handler, 0)
 }
 
+// 创建有buffer的消息队列，一般能够提供更好的并发
 func InitMsgQueueWithMsgBufferSize(handler MsgQueueHandler, bufferSize int) *MsgQueue {
 	if handler == nil {
 		return nil
@@ -73,6 +85,7 @@ func InitMsgQueueWithMsgBufferSize(handler MsgQueueHandler, bufferSize int) *Msg
 	return q
 }
 
+// 销毁消息队列
 func DestroyMsgQueue(q *MsgQueue) {
 	if q == nil {
 		return
@@ -85,6 +98,7 @@ func DestroyMsgQueue(q *MsgQueue) {
 	q = nil
 }
 
+// 启动消息循环
 func (q *MsgQueue) Start(useDefaultRun bool) {
 	q.isStart = true
 
@@ -95,6 +109,7 @@ func (q *MsgQueue) Start(useDefaultRun bool) {
 	}
 }
 
+// 停止消息循环
 func (q *MsgQueue) Stop() {
 	if !q.isStart {
 		return
@@ -106,6 +121,7 @@ func (q *MsgQueue) Stop() {
 	q.isStart = false
 }
 
+// 添加观察者
 func (q *MsgQueue) AddObserver(observer *MsgQueue) {
 	if observer == nil {
 		return
@@ -117,6 +133,7 @@ func (q *MsgQueue) AddObserver(observer *MsgQueue) {
 	q.observers = append(q.observers, observer)
 }
 
+// 删除观察者
 func (q *MsgQueue) DeleteObserver(observer *MsgQueue) {
 	if observer == nil {
 		return
@@ -133,6 +150,7 @@ func (q *MsgQueue) DeleteObserver(observer *MsgQueue) {
 	}
 }
 
+// 通知观察者
 func (q *MsgQueue) NotifyObservers(msg string, data interface{}) {
 	q.observersMutex.Lock()
 	defer q.observersMutex.Unlock()
@@ -142,6 +160,7 @@ func (q *MsgQueue) NotifyObservers(msg string, data interface{}) {
 	}
 }
 
+// 发送消息
 func (q *MsgQueue) SendMsg(msg string, data interface{}) {
 	message, err := formMessage(msg, data)
 	if err != nil {
@@ -152,6 +171,7 @@ func (q *MsgQueue) SendMsg(msg string, data interface{}) {
 	q.msgChan <- message
 }
 
+// 使用default的消息循环
 func (q *MsgQueue) runWithDefault() {
 	q.handler.OnStart(q)
 
@@ -172,6 +192,7 @@ func (q *MsgQueue) runWithDefault() {
 	}
 }
 
+// 不使用default的消息循环
 func (q *MsgQueue) runWithoutDefault() {
 	q.handler.OnStart(q)
 
