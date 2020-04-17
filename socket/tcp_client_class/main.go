@@ -1,12 +1,12 @@
 package main
 
 import (
-	"com.fs/tcp_client"
+	"tcp_client_class/tcp_client"
 	"fmt"
 )
 
 func main() {
-	client := tcp_client.CreateTCPClient("localhost", 10050, 10)
+	client := tcp_client.CreateTCPClient("10.3.1.132", 10050, 10)
 
 	listenChan := make(chan int)
 	client.StartConnect(listenChan)

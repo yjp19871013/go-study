@@ -1,7 +1,7 @@
 package main
 
 import (
-	"com.fs/tcp_server"
+	"tcp_server_class/tcp_server"
 	"fmt"
 	"strings"
 	"syscall"
