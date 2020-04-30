@@ -11,7 +11,14 @@ func str(done <-chan interface{}, str string) <-chan string {
 
 	go func() {
 		time.Sleep(2 * time.Second)
-		strChan <- str
+
+		defer close(strChan)
+
+		select {
+		case <-done:
+			return
+		case strChan <- str:
+		}
 	}()
 
 	return strChan
