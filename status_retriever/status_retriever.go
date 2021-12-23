@@ -119,8 +119,9 @@ func (retriever *statusRetriever) dealTask(task *StatusRetrieverTask) {
 
 	defer func() {
 		retriever.taskDoneMapMutex.Lock()
-		_, ok := retriever.taskDoneMap[task]
+		done, ok := retriever.taskDoneMap[task]
 		if ok {
+			close(done)
 			delete(retriever.taskDoneMap, task)
 		}
 		retriever.taskDoneMapMutex.Unlock()
