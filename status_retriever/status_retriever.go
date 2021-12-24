@@ -29,7 +29,6 @@ type StatusRetrieverTask struct {
 type statusRetriever struct {
 	done             chan interface{}
 	taskChan         chan *StatusRetrieverTask
-	taskSelfOverChan chan *StatusRetrieverTask
 	taskDoneMap      map[*StatusRetrieverTask]chan interface{}
 	taskDoneMapMutex sync.Mutex
 }
@@ -38,7 +37,6 @@ func newStatusRetriever() *statusRetriever {
 	retriever := new(statusRetriever)
 	retriever.done = make(chan interface{})
 	retriever.taskChan = make(chan *StatusRetrieverTask)
-	retriever.taskSelfOverChan = make(chan *StatusRetrieverTask)
 	retriever.taskDoneMap = make(map[*StatusRetrieverTask]chan interface{})
 
 	go retriever.scheduleTask()
@@ -79,29 +77,11 @@ func (retriever *statusRetriever) AddRetrieverTask(task *StatusRetrieverTask) {
 	retriever.taskChan <- task
 }
 
-func (retriever *statusRetriever) RemoveRetrieverTask(task *StatusRetrieverTask) {
-	retriever.taskDoneMapMutex.Lock()
-	done, ok := retriever.taskDoneMap[task]
-	if !ok {
-		retriever.taskDoneMapMutex.Unlock()
-		return
-	}
-
-	delete(retriever.taskDoneMap, task)
-	retriever.taskDoneMapMutex.Unlock()
-
-	done <- true
-	close(done)
-	done = nil
-}
-
 func (retriever *statusRetriever) scheduleTask() {
 	for {
 		select {
 		case <-retriever.done:
 			return
-		case task := <-retriever.taskSelfOverChan:
-			retriever.RemoveRetrieverTask(task)
 		case task := <-retriever.taskChan:
 			go retriever.dealTask(task)
 		}
