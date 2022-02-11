@@ -51,8 +51,9 @@ func destroyStatusRetriever(retriever *statusRetriever) {
 
 	retriever.taskDoneMapMutex.Lock()
 	for _, taskDone := range retriever.taskDoneMap {
+		retriever.taskDoneMapMutex.Unlock()
 		taskDone <- true
-		close(taskDone)
+		retriever.taskDoneMapMutex.Lock()
 	}
 	retriever.taskDoneMap = nil
 	retriever.taskDoneMapMutex.Unlock()
